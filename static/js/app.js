@@ -27,6 +27,8 @@ function init() {
       // Initial display
       let initialSample = data.names[0];
       buildCharts(initialSample); // only needs ID number "data" is not needed as a parameter
+      showMetadata(initialSample); // added to display the demo info
+      showGauge(initialSample); //added to display the gauge cluster
   })
 };
 
@@ -34,6 +36,7 @@ init();
 
 function optionChanged(newSample) {
   buildCharts(newSample);
+  showMetadata(newSample); //display the demo info in the box
 };
 
 
@@ -95,24 +98,7 @@ function buildCharts(sample) {
   })
 };
 
-function init() {
-  d3.json(url).then(function(data) {
-    console.log(data);
-
-    // Select the dropdown element
-    let dropdown = d3.select("#selDataset");
-
-    // Populate the dropdown options with sample names
-    data.names.forEach(function(name) {
-      dropdown.append("option").text(name).property("value", name);
-    });
-
-    // Initial display
-    let initialSample = data.names[0];
-    buildCharts(initialSample);
-    showMetadata(initialSample);
-  });
-}
+// Function to display demographic info
 function showMetadata(sample) {
   d3.json(url).then(function(data) {
     let metadata = data.metadata.find(metadata => metadata.id.toString() === sample);
@@ -126,7 +112,53 @@ function showMetadata(sample) {
     // Loop through each key-value pair in metadata and append to panel
     Object.entries(metadata).forEach(([key, value]) => {
       metadataPanel.append("p").text(`${key}: ${value}`);
-    });
-  });
-}
+    })
+  })
+};
 
+
+// Function to build and update the gauge chart (WILL HAVE TO REDO)
+function showGauge(sample) {
+  d3.json(url).then(function(data) {
+    let metadata = data.metadata.find(metadata => metadata.id.toString() === sample);
+
+    // Get the number of scrubs per week (assuming it's stored in the 'wfreq' property)
+    let scrubsPerWeek = metadata.wfreq;
+
+    var gaugeData = [
+      {
+        type: "indicator",
+        mode: "gauge+number+delta",
+        value: scrubsPerWeek,
+        title: { text: "Scrubs per Week", font: { size: 24 } },
+        delta: { reference: 4, increasing: { color: "RebeccaPurple" } },
+        gauge: {
+          axis: { range: [null, 9], tickwidth: 1, tickcolor: "darkblue" },
+          bar: { color: "darkblue" },
+          bgcolor: "white",
+          borderwidth: 2,
+          bordercolor: "gray",
+          steps: [
+            { range: [0, 3], color: "cyan" },
+            { range: [3, 7], color: "royalblue" }
+          ],
+          threshold: {
+            line: { color: "red", width: 4 },
+            thickness: 0.75,
+            value: 9
+          }
+        }
+      }
+    ];
+
+    var gaugeLayout = {
+      width: 500,
+      height: 400,
+      margin: { t: 25, r: 25, l: 25, b: 25 },
+      paper_bgcolor: "lavender",
+      font: { color: "darkblue", family: "Arial" }
+    };
+
+    Plotly.newPlot("gauge", gaugeData, gaugeLayout);
+  })
+};
