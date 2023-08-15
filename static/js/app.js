@@ -36,7 +36,8 @@ init();
 
 function optionChanged(newSample) {
   buildCharts(newSample);
-  showMetadata(newSample); //display the demo info in the box
+  showMetadata(newSample); //updates the demo box info with the new sample (drop down selection)
+  showGauge(newSample); //updates the gauge cluster with the new sample (drop down selection)
 };
 
 
